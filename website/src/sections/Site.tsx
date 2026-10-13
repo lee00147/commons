@@ -29,18 +29,20 @@ import { Section, Prose } from '../components/Section'
 import { useCycle } from '../components/Loop'
 import { Code } from '../components/Code'
 import { Mark } from '../components/Mark'
+import { IndexChart } from '../components/IndexChart'
 import { tokens } from '../theme'
-import { MINT, PROGRAM_ID, REPO, WHITE_PAPER, explorer, short } from '../data/token'
+import { MINT, PROGRAM_ID, REPO, WHITE_PAPER, explorer } from '../data/token'
 import appRelease from '../data/app-release.json'
 
 // ---------------------------------------------------------------- header
 
 const NAV: [string, string][] = [
+  ['Why Commons', '/#why'],
+  ['Monetary rule', '/#rule'],
+  ['Banks', '/#banks'],
   ['White paper', '/#whitepaper'],
   ['CMN', '/#cmn'],
-  ['How it works', '/#how'],
   ['Developers', '/#developers'],
-  ['Commons app', '/#app'],
   ['Roadmap', '/#roadmap'],
 ]
 
@@ -83,85 +85,115 @@ export function Header() {
 
 // ---------------------------------------------------------------- hero
 
-const FACTS: [string, string][] = [
-  ['Unit', '1 CMN buys 20 work units: 20 billion metered instructions'],
-  ['First CMN', 'mined by verified compute jobs, not puzzles'],
-  ['After the bootstrap', 'new CMN reaches builders through banks users found and can close'],
-  ['Value', 'rises with the network’s real output, at most 25% a year'],
-  ['Chain', 'Solana (devnet today), Token-2022'],
-]
-
-const heroSeq: Variants = { hidden: {}, shown: { transition: { staggerChildren: 0.09, delayChildren: 0.05 } } }
-const rise: Variants = { hidden: { opacity: 0, y: 18 }, shown: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } } }
-const rowSeq: Variants = { hidden: {}, shown: { transition: { staggerChildren: 0.07, delayChildren: 0.45 } } }
-const row: Variants = { hidden: { opacity: 0, x: 10 }, shown: { opacity: 1, x: 0, transition: { duration: 0.4, ease: 'easeOut' } } }
+const heroSeq: Variants = { hidden: {}, shown: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } } }
+const rise: Variants = { hidden: { opacity: 0, y: 24 }, shown: { opacity: 1, y: 0, transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] } } }
+const word: Variants = { hidden: { y: '105%' }, shown: { y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } } }
 
 export function Hero() {
   return (
-    <Box component="header" sx={{ pt: { xs: 6, md: 10 }, pb: { xs: 7, md: 9 } }}>
-      <Container maxWidth="lg">
-        <Box component={motion.div} variants={heroSeq} initial="hidden" animate="shown" sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.05fr 1fr' }, gap: { xs: 5, md: 7 }, alignItems: 'center' }}>
-          <Box>
-            <Typography variant="h1" sx={{ maxWidth: '12ch' }}>
-              {['Money', 'measured', 'in work.'].map((w) => (
-                <motion.span key={w} variants={rise} style={{ display: 'inline-block', marginRight: '0.24em' }}>
-                  {w}
+    <Box component="header" sx={{ bgcolor: tokens.signal, color: tokens.ink, pt: { xs: 7, md: 11 }, pb: { xs: 5, md: 7 }, overflow: 'hidden' }}>
+      <Container maxWidth="lg" component={motion.div} variants={heroSeq} initial="hidden" animate="shown">
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 330px' }, gap: { xs: 5, md: 6 }, alignItems: 'end' }}>
+          <Typography variant="h1" component="h1" sx={{ color: 'inherit' }}>
+            {['Money', 'measured', 'in work.'].map((line) => (
+              <Box key={line} component="span" sx={{ display: 'block', overflow: 'hidden', pb: '0.05em' }}>
+                <motion.span variants={word} style={{ display: 'block' }}>
+                  {line}
                 </motion.span>
-              ))}
-            </Typography>
-            <Typography component={motion.p} variants={rise} color="text.secondary" sx={{ fontSize: 19, mt: 3, mb: 4, maxWidth: '56ch' }}>
-              CMN is a currency that is worth the computing it buys. New CMN is created only when the economy needs it, paid first to people who do useful work and then to the people who build,
-              through banks that users found and can close. An open rule, run on chain, keeps it steady.
-            </Typography>
-            <Stack component={motion.div} variants={rise} direction="row" spacing={1.5} useFlexGap flexWrap="wrap">
-              <Button href={WHITE_PAPER} variant="contained" size="large" startIcon={<ArticleRounded />}>
-                Read the white paper
-              </Button>
-              {MINT ? (
-                <Button href={explorer('address', MINT)} target="_blank" rel="noopener" variant="outlined" size="large" endIcon={<OpenInNewRounded />}>
-                  CMN on Solana
-                </Button>
-              ) : (
-                <Button href="#cmn" variant="outlined" size="large">
-                  About CMN
-                </Button>
-              )}
-              {REPO && (
-                <Button href={REPO} target="_blank" rel="noopener" variant="outlined" size="large" endIcon={<OpenInNewRounded />}>
-                  Source code
-                </Button>
-              )}
-            </Stack>
-            <Typography component={motion.p} variants={rise} variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              Devnet software. CMN on devnet has no value.
-            </Typography>
-          </Box>
-          <Paper component={motion.div} variants={rise} variant="outlined" sx={{ p: { xs: 2.5, md: 3.5 }, borderRadius: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2.5 }}>
-              <Box component="img" src="/cmn-logo.png" alt="" sx={{ width: 44, height: 44, borderRadius: '50%' }} />
-              <Box>
-                <Typography sx={{ fontWeight: 800, fontStretch: '112%' }}>Commons · CMN</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {MINT ? short(MINT) : 'Token-2022 mint on Solana devnet'}
-                </Typography>
               </Box>
+            ))}
+          </Typography>
+          <Box component={motion.div} variants={rise} sx={{ borderTop: `3px solid ${tokens.ink}`, pt: 2, mb: { md: 1.5 } }}>
+            <Typography sx={{ fontWeight: 700 }}>The posted rate</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5 }}>
+              <Typography sx={{ fontWeight: 800, fontStretch: '62%', fontSize: { xs: 112, md: 168 }, lineHeight: 0.88, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums' }}>20</Typography>
+              <Typography sx={{ fontWeight: 800, fontStretch: '112%', fontSize: { xs: 22, md: 26 }, lineHeight: 1.05 }}>
+                work units
+                <br />
+                for 1 CMN
+              </Typography>
             </Box>
-            <Box component={motion.dl} variants={rowSeq} sx={{ m: 0, display: 'grid', gap: 1.75 }}>
-              {FACTS.map(([k, v]) => (
-                <Box component={motion.div} variants={row} key={k} sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '150px 1fr' }, gap: { xs: 0.25, sm: 2 } }}>
-                  <Typography component="dt" variant="body2" sx={{ fontWeight: 700 }}>
-                    {k}
-                  </Typography>
-                  <Typography component="dd" variant="body2" color="text.secondary" sx={{ m: 0 }}>
-                    {v}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          </Paper>
+            <Typography sx={{ mt: 1.5, opacity: 0.8, fontSize: 15 }}>20 billion metered WebAssembly instructions, the same on every machine.</Typography>
+          </Box>
         </Box>
+
+        <Box component={motion.div} variants={rise} sx={{ mt: { xs: 6, md: 7 } }}>
+          <Typography sx={{ fontSize: { xs: 19, md: 23 }, lineHeight: 1.5, maxWidth: '44ch', fontWeight: 500 }}>
+            Commons is a place to run programs and get software, with its own currency. CMN is built to be spent, not speculated on: it is worth the computing it buys, and new CMN goes only to the
+            people who do verified work and, through banks users found, to the people who build.
+          </Typography>
+          <Stack direction="row" spacing={1.5} useFlexGap flexWrap="wrap" sx={{ mt: 4 }}>
+            <Button href={WHITE_PAPER} variant="contained" size="large" startIcon={<ArticleRounded />}>
+              Read the white paper
+            </Button>
+            <Button href="#rule" variant="outlined" size="large" color="inherit">
+              See the rule work
+            </Button>
+            {REPO && (
+              <Button href={REPO} target="_blank" rel="noopener" variant="outlined" size="large" color="inherit" endIcon={<OpenInNewRounded />}>
+                Source code
+              </Button>
+            )}
+          </Stack>
+        </Box>
+
+        <Box component={motion.div} variants={rise} sx={{ mt: { xs: 6, md: 9 }, borderTop: `3px solid ${tokens.ink}`, pt: 3 }}>
+          <IndexChart onSignal />
+        </Box>
+        <Typography component={motion.p} variants={rise} variant="body2" sx={{ mt: 2.5, opacity: 0.75 }}>
+          Devnet software. CMN on devnet has no value.
+        </Typography>
       </Container>
     </Box>
+  )
+}
+
+// ---------------------------------------------------------------- why
+
+const WHY: [string, string][] = [
+  ['Most tokens are held to speculate, and their price follows attention.', 'CMN is spent on computing and apps. Its value is what it buys there: 1 CMN buys 20 work units of metered computation.'],
+  ['New coins go to whoever burns the most power or holds the most stake.', 'New CMN is created only when the economy is short of money, and goes to verified compute work, then to builders.'],
+  ['Builders wait for a company or a foundation to decide to fund them.', 'Banks that users found, vote on and can close sponsor builders. They never lend, and their operators earn only when what they fund is used.'],
+  ['Stablecoins hold their value by holding dollars you can redeem.', 'CMN holds no reserve and redeems for nothing. Other coins’ prices are only a signal; the anchor is work.'],
+]
+
+const whyRow: Variants = { hidden: {}, shown: { transition: { staggerChildren: 0.18 } } }
+const fromLeft: Variants = { hidden: { opacity: 0, x: -24 }, shown: { opacity: 1, x: 0, transition: { duration: 0.5, ease: 'easeOut' } } }
+const fromRight: Variants = { hidden: { opacity: 0, x: 24 }, shown: { opacity: 1, x: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } } }
+const grow: Variants = { hidden: { scaleX: 0 }, shown: { scaleX: 1, transition: { duration: 0.45, ease: 'easeOut' } } }
+
+export function Why() {
+  return (
+    <Section id="why" title="Why Commons." intro="Most tokens are worth what people hope they will be worth. Commons starts from the opposite question: what if a token’s value came from what it does?">
+      <Box>
+        <Box sx={{ display: { xs: 'none', md: 'grid' }, gridTemplateColumns: '1fr 96px 1.25fr', pb: 1.5 }}>
+          <Typography color="text.secondary" sx={{ fontWeight: 700 }}>
+            Usually
+          </Typography>
+          <span />
+          <Typography sx={{ fontWeight: 800 }}>On Commons</Typography>
+        </Box>
+        {WHY.map(([usual, commons]) => (
+          <Box
+            key={usual}
+            component={motion.div}
+            variants={whyRow}
+            initial="hidden"
+            whileInView="shown"
+            viewport={{ once: true, amount: 0.6 }}
+            sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 96px 1.25fr' }, alignItems: 'center', gap: { xs: 1.5, md: 0 }, py: { xs: 3, md: 4 }, borderTop: 2, borderColor: 'text.primary' }}
+          >
+            <Typography component={motion.p} variants={fromLeft} color="text.secondary" sx={{ m: 0, fontSize: { md: 19 }, textDecoration: 'line-through', textDecorationThickness: '1.5px', textDecorationColor: 'rgba(75,86,103,0.45)' }}>
+              {usual}
+            </Typography>
+            <Box component={motion.div} variants={grow} aria-hidden sx={{ height: 6, mx: 3, bgcolor: tokens.signal, transformOrigin: 'left', display: { xs: 'none', md: 'block' } }} />
+            <Typography component={motion.p} variants={fromRight} sx={{ m: 0, fontWeight: 700, fontSize: { xs: 19, md: 23 }, lineHeight: 1.35, letterSpacing: '-0.01em' }}>
+              {commons}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+    </Section>
   )
 }
 
@@ -313,12 +345,12 @@ export function HowItWorks() {
               setPaused(true)
               setStep(i)
             }}
-            sx={{ position: 'relative', p: 3, borderRadius: 3, overflow: 'hidden' }}
+            sx={{ position: 'relative', p: 3, overflow: 'visible' }}
           >
             {animated && i === step && (
-              <motion.div layoutId="loop-active" aria-hidden style={{ position: 'absolute', inset: 0, borderRadius: 12, border: `2px solid ${tokens.signal}`, pointerEvents: 'none' }} transition={{ type: 'spring', stiffness: 260, damping: 30 }} />
+              <motion.div layoutId="loop-active" aria-hidden style={{ position: 'absolute', left: 0, right: 0, top: -3, height: 8, background: tokens.signal, pointerEvents: 'none' }} transition={{ type: 'spring', stiffness: 260, damping: 30 }} />
             )}
-            <Box sx={{ width: 34, height: 34, borderRadius: '50%', bgcolor: 'secondary.main', color: 'secondary.contrastText', display: 'grid', placeItems: 'center', fontWeight: 800, mb: 2 }}>{i + 1}</Box>
+            <Typography sx={{ fontWeight: 800, fontStretch: '62%', fontSize: 72, lineHeight: 0.9, mb: 2, color: i === step ? 'text.primary' : 'text.disabled', transition: 'color .3s' }}>{i + 1}</Typography>
             <Typography variant="h3" sx={{ mb: 1 }}>
               {t}
             </Typography>
@@ -362,7 +394,7 @@ export function CommonsApp() {
           </Box>
         ))}
       </Box>
-      <Paper variant="outlined" sx={{ mt: 6, p: { xs: 2.5, md: 3.5 }, borderRadius: 3, display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 3, md: 5 } }}>
+      <Paper variant="outlined" sx={{ mt: 6, p: { xs: 2.5, md: 3.5 }, display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 3, md: 5 } }}>
         <Box>
           <Stack direction="row" spacing={1.5} useFlexGap flexWrap="wrap" alignItems="center">
             {ready ? (
@@ -378,7 +410,7 @@ export function CommonsApp() {
           </Stack>
           {ready && (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
-              Version {appRelease.version} · {mb(appRelease.bytes)} · macOS {appRelease.minMacOS} or later
+              Version {appRelease.version}, {mb(appRelease.bytes)}, macOS {appRelease.minMacOS} or later
             </Typography>
           )}
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2, maxWidth: '52ch' }}>
@@ -472,7 +504,7 @@ export function Developers() {
 
 const PHASES: { title: string; when: string; items: string[] }[] = [
   {
-    title: 'Phase 1 — CMN on Solana',
+    title: 'Phase 1: CMN on Solana',
     when: 'Now, on devnet',
     items: ['Token-2022 CMN with the monetary rule', 'Mining by verified compute jobs', 'Work units and the clearing-price index', 'Banks with operator rewards', 'Store with on-chain licenses and verified installs', 'Commons for Mac'],
   },
@@ -482,7 +514,7 @@ const PHASES: { title: string; when: string; items: string[] }[] = [
     items: ['Read the market price from CMN’s own pools', 'Independent security audit', 'Upgrades through a multisig with a seven-day delay', 'Genesis claims from test-network work'],
   },
   {
-    title: 'Phase 2 — the Commons chain',
+    title: 'Phase 2: the Commons chain',
     when: 'After BFT consensus, an audit and a user vote',
     items: ['CMN moves 1:1 through a bridge', 'Rent by computing load, paid in CMN', 'Native token standard and on-chain markets', 'Flat state committed with a lattice hash'],
   },
@@ -493,7 +525,7 @@ export function Roadmap() {
     <Section id="roadmap" tone="surface" title="Where it stands." intro="The currency goes first, on Solana, where wallets and markets already exist. The Commons chain follows once the currency has proved itself.">
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3 }}>
         {PHASES.map((p, i) => (
-          <Paper key={p.title} variant="outlined" sx={{ p: 3, borderRadius: 3, borderColor: i === 0 ? tokens.signal : undefined, borderWidth: i === 0 ? 2 : 1 }}>
+          <Paper key={p.title} variant="outlined" sx={{ p: 3, borderTopColor: i === 0 ? tokens.signal : undefined, borderTopWidth: i === 0 ? 8 : 3 }}>
             <Typography variant="h3">{p.title}</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               {p.when}
@@ -522,7 +554,7 @@ export function Footer() {
           <Mark /> Commons
         </Box>
         <Typography variant="body2" color="text.secondary">
-          Built for the Colosseum Crypto World’s Fair ·{' '}
+          Built for the Colosseum Crypto World’s Fair.{' '}
           <Link href={WHITE_PAPER} color="inherit">
             White paper
           </Link>

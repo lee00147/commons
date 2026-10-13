@@ -68,7 +68,7 @@ export function Code({ children, lang = 'sh', title, copy = true }: { children: 
   const body = lang === 'rust' ? highlightRust(children) : lang === 'sh' ? highlightShell(children) : children
   const copyText = lang === 'sh' ? children.split('\n').filter((l) => l.startsWith('$ ')).map((l) => l.slice(2)).join('\n') || children : children
   return (
-    <Box sx={{ position: 'relative', bgcolor: tokens.code, color: tokens.codeInk, borderRadius: 3, overflow: 'hidden', minWidth: 0 }}>
+    <Box sx={{ position: 'relative', bgcolor: tokens.code, color: tokens.codeInk, borderRadius: 0, overflow: 'hidden', minWidth: 0 }}>
       {title && (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1.1, borderBottom: '1px solid rgba(255,255,255,0.08)', color: tokens.codeDim, fontFamily: 'var(--mono)', fontSize: 12 }}>
           {[0, 1, 2].map((i) => (

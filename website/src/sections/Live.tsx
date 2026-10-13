@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { animate, motion, useReducedMotion } from 'motion/react'
 import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
 import Typography from '@mui/material/Typography'
@@ -73,6 +74,23 @@ function ago(t: number) {
   return `${Math.round(s / 86400)} days ago`
 }
 
+/** Counts from the previous value to the new one. */
+function Ticker({ value, dp }: { value: number; dp: number }) {
+  const reduce = useReducedMotion()
+  const [shown, setShown] = useState(reduce ? value : 0)
+  const from = useRef(0)
+  useEffect(() => {
+    if (reduce) {
+      setShown(value)
+      return
+    }
+    const c = animate(from.current, value, { duration: 1.4, ease: [0.16, 1, 0.3, 1], onUpdate: setShown })
+    from.current = value
+    return () => c.stop()
+  }, [value, reduce])
+  return <>{num(shown, dp)}</>
+}
+
 export function Live() {
   const [chain, setChain] = useState<Chain | null>(null)
   const [failed, setFailed] = useState(false)
@@ -91,14 +109,15 @@ export function Live() {
     }
   }, [])
 
-  const cells: [string, string, string][] = chain
+  type Cell = [string, number, number, string]
+  const cells: Cell[] = chain
     ? [
-        ['Work price index', num(chain.index, 4), `target ${num(chain.target, 4)}; the rule steers it back`],
-        ['Last clearing price', num(chain.price, 3), 'CMN per work unit, the highest drawn ask'],
-        ['Mined by verified work', num(chain.mined), 'CMN, only from settled compute jobs'],
-        ['Supply', num(chain.supply), 'CMN; the program is the only mint authority'],
-        ...(chain.jobs !== undefined ? [['Compute jobs posted', String(chain.jobs), 'each drawn to at least three bonded providers'] as [string, string, string]] : []),
-        ...(chain.treasury !== undefined ? [['Treasury', num(chain.treasury), 'CMN collected as protocol fees'] as [string, string, string]] : []),
+        ['Work price index', chain.index, 4, `target ${num(chain.target, 4)}; the rule steers it back`],
+        ['Last clearing price', chain.price, 3, 'CMN per work unit, the highest drawn ask'],
+        ['Mined by verified work', chain.mined, 2, 'CMN, only from settled compute jobs'],
+        ['Supply', chain.supply, 2, 'CMN; the program is the only mint authority'],
+        ...(chain.jobs !== undefined ? [['Compute jobs posted', chain.jobs, 0, 'each drawn to at least three bonded providers'] as Cell] : []),
+        ...(chain.treasury !== undefined ? [['Treasury', chain.treasury, 2, 'CMN collected as protocol fees'] as Cell] : []),
       ]
     : []
 
@@ -114,15 +133,15 @@ export function Live() {
           </Typography>
         </Box>
 
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(3, 1fr)' }, border: `1px solid ${tokens.ink2}`, borderRadius: 3, overflow: 'hidden', minHeight: 120 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(3, 1fr)' }, borderTop: `3px solid ${tokens.signal}`, overflow: 'hidden', minHeight: 120 }}>
           {chain
-            ? cells.map(([k, v, note]) => (
-                <Box key={k} sx={{ p: { xs: 2, md: 3 }, borderRight: `1px solid ${tokens.ink2}`, borderBottom: `1px solid ${tokens.ink2}`, mr: '-1px', mb: '-1px' }}>
+            ? cells.map(([k, v, dp, note], i) => (
+                <Box key={k} component={motion.div} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: i * 0.08 }} sx={{ py: { xs: 2.5, md: 3.5 }, pr: 2, borderBottom: `1px solid ${tokens.ink2}` }}>
                   <Typography variant="body2" sx={{ color: tokens.codeDim, fontWeight: 600 }}>
                     {k}
                   </Typography>
-                  <Typography sx={{ fontWeight: 800, fontStretch: '80%', fontSize: { xs: 30, md: 42 }, lineHeight: 1.15, my: 0.5, fontVariantNumeric: 'tabular-nums', color: k === 'Work price index' ? tokens.signal : 'inherit' }}>
-                    {v}
+                  <Typography sx={{ fontWeight: 800, fontStretch: '80%', fontSize: { xs: 34, md: 56 }, lineHeight: 1.05, my: 0.5, fontVariantNumeric: 'tabular-nums', color: k === 'Work price index' ? tokens.signal : 'inherit' }}>
+                    <Ticker value={v} dp={dp} />
                   </Typography>
                   <Typography variant="body2" sx={{ color: tokens.codeDim }}>
                     {note}
@@ -137,15 +156,17 @@ export function Live() {
         </Box>
 
         <Typography variant="body2" sx={{ mt: 2.5, color: tokens.codeDim, '& a': { color: tokens.paper } }}>
+          <Box component={motion.span} aria-hidden animate={{ opacity: [1, 0.25, 1] }} transition={{ duration: 1.8, repeat: Infinity }} sx={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', bgcolor: failed ? tokens.codeDim : '#4ade80', mr: 1, verticalAlign: 'middle' }} />
           {chain?.lastTx ? `Last program transaction ${ago(chain.lastTx)}. ` : ''}
           <Link href={explorer('address', PROGRAM_ID)} target="_blank" rel="noopener">
             Program on Explorer
           </Link>
-          {' · '}
+          <Box component="span" sx={{ mx: 1.5 }} />
           <Link href={explorer('address', MINT_ADDR)} target="_blank" rel="noopener">
             CMN mint
           </Link>
-          {' · Devnet CMN has no value.'}
+          <Box component="span" sx={{ mx: 1.5 }} />
+          Devnet CMN has no value.
         </Typography>
       </Container>
     </Box>

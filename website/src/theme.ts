@@ -4,13 +4,13 @@ import { createTheme } from '@mui/material/styles'
 export const tokens = {
   paper: '#edf0f2',
   surface: '#ffffff',
-  ink: '#101a2b',
+  ink: '#16233b',
   ink2: '#4b5667',
-  rule: '#c9d0d8',
+  rule: '#cfd5dd',
   signal: '#f2c230',
   signalInk: '#1a1405',
   cobalt: '#2346d9',
-  code: '#101a2b',
+  code: '#16233b',
   codeInk: '#e3e8ef',
   codeDim: '#8796ab',
   codeKey: '#f2c230',
@@ -25,7 +25,7 @@ export const theme = createTheme({
   colorSchemes: {
     light: {
       palette: {
-        primary: { main: tokens.ink, contrastText: tokens.paper },
+        primary: { main: tokens.ink, contrastText: '#ffffff' },
         secondary: { main: tokens.signal, contrastText: tokens.signalInk },
         info: { main: tokens.cobalt },
         background: { default: tokens.paper, paper: tokens.surface },
@@ -44,24 +44,35 @@ export const theme = createTheme({
       },
     },
   },
-  shape: { borderRadius: 10 },
+  shape: { borderRadius: 2 },
   typography: {
     fontFamily: display,
-    h1: { fontWeight: 800, fontStretch: '118%', fontSize: 'clamp(2.5rem, 6.2vw, 4.75rem)', lineHeight: 0.98, letterSpacing: '-0.025em' },
-    h2: { fontWeight: 800, fontStretch: '112%', fontSize: 'clamp(1.75rem, 3.3vw, 2.5rem)', lineHeight: 1.08, letterSpacing: '-0.015em' },
-    h3: { fontWeight: 700, fontSize: '1.2rem', lineHeight: 1.3 },
+    h1: { fontWeight: 800, fontStretch: '125%', fontSize: 'clamp(3.1rem, 9.4vw, 8.75rem)', lineHeight: 0.86, letterSpacing: '-0.045em' },
+    h2: { fontWeight: 800, fontStretch: '122%', fontSize: 'clamp(2.25rem, 5.4vw, 4.6rem)', lineHeight: 0.92, letterSpacing: '-0.035em' },
+    h3: { fontWeight: 800, fontStretch: '112%', fontSize: '1.3rem', lineHeight: 1.25, letterSpacing: '-0.01em' },
     h4: { fontWeight: 700, fontSize: '1.05rem', lineHeight: 1.35 },
-    body1: { fontSize: '1rem', lineHeight: 1.6 },
+    body1: { fontSize: '1.0625rem', lineHeight: 1.6 },
     body2: { fontSize: '0.92rem', lineHeight: 1.6 },
-    button: { textTransform: 'none', fontWeight: 700, letterSpacing: 0 },
+    button: { textTransform: 'none', fontWeight: 800, letterSpacing: 0 },
   },
   components: {
     MuiButton: {
       defaultProps: { disableElevation: true },
-      styleOverrides: { root: { borderRadius: 8, paddingInline: 18, minHeight: 44 }, outlined: { borderWidth: 2, '&:hover': { borderWidth: 2 } } },
+      styleOverrides: {
+        root: { borderRadius: 0, paddingInline: 22, minHeight: 50, fontSize: 16 },
+        sizeSmall: { minHeight: 38, paddingInline: 14, fontSize: 14 },
+        outlined: { borderWidth: 2, borderColor: 'currentColor', '&:hover': { borderWidth: 2 } },
+      },
     },
-    MuiPaper: { defaultProps: { elevation: 0 }, styleOverrides: { outlined: { borderColor: 'var(--mui-palette-divider)' } } },
-    MuiTableCell: { styleOverrides: { head: { fontWeight: 600, color: 'var(--mui-palette-text-secondary)', whiteSpace: 'nowrap' } } },
+    // Panels are plates: square, no shadow, marked by a heavy rule along the top.
+    MuiPaper: {
+      defaultProps: { elevation: 0 },
+      styleOverrides: {
+        outlined: { borderRadius: 0, border: 'none', borderTop: '3px solid var(--mui-palette-text-primary)', backgroundColor: 'var(--mui-palette-background-paper)' },
+      },
+    },
+    MuiTableCell: { styleOverrides: { head: { fontWeight: 800, color: 'var(--mui-palette-text-primary)', whiteSpace: 'nowrap' } } },
+    MuiToggleButton: { styleOverrides: { root: { borderRadius: 0, fontWeight: 700 } } },
     MuiTab: { styleOverrides: { root: { textTransform: 'none', fontWeight: 600, minHeight: 40 } } },
     MuiChip: { styleOverrides: { root: { fontWeight: 600 } } },
   },

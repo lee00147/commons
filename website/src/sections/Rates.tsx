@@ -40,7 +40,7 @@ export function Rates() {
             the network grows, slumps or attracts speculators, apart from a rise with real output of at most 25% a year.
           </Typography>
         </Box>
-        <Box sx={{ mt: 5, border: `3px solid ${tokens.signalInk}`, borderRadius: 3.5, bgcolor: 'color-mix(in srgb, #f2c230 70%, #fff)', overflow: 'hidden' }}>
+        <Box sx={{ mt: 5, border: `3px solid ${tokens.signalInk}`, borderRadius: 0, bgcolor: 'color-mix(in srgb, #f2c230 70%, #fff)', overflow: 'hidden' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, px: 3, py: 1.75, borderBottom: `3px solid ${tokens.signalInk}`, fontWeight: 700, fontStretch: '112%' }}>
             <span>Posted rates at index 1.000 — 1 CMN buys</span>
             <span>set by the protocol, not by any operator</span>

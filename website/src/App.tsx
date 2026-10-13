@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
 import { Rates } from './sections/Rates'
-import { Header, Hero, WhitePaper, Cmn, HowItWorks, CommonsApp, Developers, Roadmap, Footer } from './sections/Site'
+import { Header, Hero, Why, WhitePaper, Cmn, HowItWorks, CommonsApp, Developers, Roadmap, Footer } from './sections/Site'
 import { Live } from './sections/Live'
+import { MonetaryRule, Banks } from './sections/Mechanism'
 
 export default function App() {
   // Links like /#how arrive before the sections exist; jump once they do.
@@ -15,10 +16,13 @@ export default function App() {
       <main>
         <Hero />
         <Live />
+        <Why />
         <Rates />
-        <WhitePaper />
-        <Cmn />
         <HowItWorks />
+        <MonetaryRule />
+        <Banks />
+        <Cmn />
+        <WhitePaper />
         <Developers />
         <CommonsApp />
         <Roadmap />
