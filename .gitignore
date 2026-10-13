@@ -1,0 +1,13 @@
+node_modules/
+target/
+.anchor/
+test-ledger/
+.demo/
+dist/
+.wrangler/
+.build/
+.swiftpm/
+.work/
+.DS_Store
+*.mov
+*.mp4

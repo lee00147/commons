@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pixel Forge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<style>
+  :root { --paper:#edf0f2; --surface:#fff; --ink:#101a2b; --ink2:#4b5667; --rule:#c9d0d8; --signal:#f2c230; --signalInk:#1a1405; }
+  @media (prefers-color-scheme: dark) { :root { --paper:#0f1622; --surface:#162030; --ink:#e7ecf2; --ink2:#9aa6b5; --rule:#263245; } }
+  * { box-sizing: border-box; }
+  html, body { height:100%; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:Archivo, system-ui, sans-serif; display:grid; grid-template-columns: 1fr 300px; }
+  .stage { display:flex; align-items:center; justify-content:center; padding:24px; min-height:0; overflow:hidden; }
+  canvas { max-width:100%; max-height:100%; border-radius:8px; box-shadow: 0 1px 2px rgba(0,0,0,.08); background:var(--surface); }
+  .empty { text-align:center; color:var(--ink2); }
+  .empty h1 { color:var(--ink); font-size: clamp(2rem, 4vw, 2.8rem); font-weight:800; font-stretch:118%; letter-spacing:-0.02em; margin:0 0 8px; }
+  aside { border-left:1px solid var(--rule); background:var(--surface); padding:20px; display:flex; flex-direction:column; gap:18px; overflow:auto; }
+  .brand { font-weight:800; font-stretch:115%; font-size:18px; }
+  button, .file { font:inherit; font-weight:700; border:0; border-radius:8px; padding:9px 14px; cursor:pointer; text-align:center; }
+  .primary { background:var(--ink); color:var(--paper); }
+  .secondary { background:transparent; color:var(--ink); box-shadow: inset 0 0 0 2px var(--ink); }
+  button:disabled { opacity:.4; cursor:default; }
+  button:focus-visible, input:focus-visible, .file:focus-within { outline:3px solid #2346d9; outline-offset:2px; }
+  .file input { position:absolute; width:1px; height:1px; opacity:0; }
+  .row { display:grid; grid-template-columns: 1fr auto; gap:4px 8px; align-items:center; font-size:14px; }
+  .row output { color:var(--ink2); font-variant-numeric: tabular-nums; min-width:3ch; text-align:right; }
+  .row input { grid-column: 1 / -1; width:100%; accent-color: var(--ink); }
+  .presets { display:flex; flex-wrap:wrap; gap:6px; }
+  .presets button { padding:6px 10px; font-size:13px; background:var(--paper); color:var(--ink); }
+  .presets button[aria-pressed=true] { background:var(--signal); color:var(--signalInk); }
+  .note { font-size:12px; color:var(--ink2); margin-top:auto; }
+  @media (max-width: 720px) { body { grid-template-columns: 1fr; grid-template-rows: 55vh auto; } aside { border-left:0; border-top:1px solid var(--rule); } }
+</style>
+</head>
+<body>
+<main class="stage" id="stage">
+  <div class="empty" id="empty">
+    <h1>Pixel Forge</h1>
+    <p>Open a photo to adjust it. Everything happens on this computer.</p>
+  </div>
+  <canvas id="view" hidden></canvas>
+</main>
+<aside>
+  <div class="brand">Pixel Forge</div>
+  <label class="file primary">Open photo<input type="file" id="file" accept="image/*"></label>
+  <div>
+    <div style="font-size:13px;color:var(--ink2);margin-bottom:6px">Looks</div>
+    <div class="presets" id="presets"></div>
+  </div>
+  <div id="sliders"></div>
+  <button class="secondary" id="reset" disabled>Reset</button>
+  <button class="primary" id="export" disabled>Export PNG</button>
+  <p class="note">Your photo never leaves your computer. Exports save to Downloads.</p>
+</aside>
+<script>
+const SLIDERS = [
+  ['brightness', 'Brightness', -100, 100, 0],
+  ['contrast', 'Contrast', -100, 100, 0],
+  ['saturation', 'Saturation', -100, 100, 0],
+  ['warmth', 'Warmth', -100, 100, 0],
+  ['mono', 'Black and white', 0, 100, 0],
+  ['fade', 'Fade', 0, 100, 0],
+]
+const PRESETS = {
+  Original: {},
+  Vivid: { contrast: 18, saturation: 35 },
+  Warm: { warmth: 40, saturation: 10, brightness: 4 },
+  Cool: { warmth: -35, contrast: 8 },
+  Mono: { mono: 100, contrast: 20 },
+  Faded: { fade: 35, contrast: -15, saturation: -20 },
+}
+const state = Object.fromEntries(SLIDERS.map(([k, , , , v]) => [k, v]))
+const $ = (id) => document.getElementById(id)
+let source = null // full-resolution ImageBitmap
+let preview = null // downscaled ImageData for live editing
+let name = 'photo'
+
+$('sliders').innerHTML = SLIDERS.map(([k, label, min, max, v]) =>
+  `<div class="row"><label for="s-${k}">${label}</label><output id="o-${k}">${v}</output><input type="range" id="s-${k}" min="${min}" max="${max}" value="${v}" disabled></div>`).join('')
+$('presets').innerHTML = Object.keys(PRESETS).map((p) => `<button data-p="${p}" aria-pressed="${p === 'Original'}" disabled>${p}</button>`).join('')
+
+function apply(img) {
+  const d = new Uint8ClampedArray(img.data)
+  const b = state.brightness * 1.28
+  const c = (100 + state.contrast) / 100
+  const s = (100 + state.saturation) / 100
+  const w = state.warmth * 0.35
+  const m = state.mono / 100
+  const f = state.fade / 100
+  for (let i = 0; i < d.length; i += 4) {
+    let r = d[i], g = d[i + 1], bl = d[i + 2]
+    r += b; g += b; bl += b
+    r = (r - 128) * c + 128; g = (g - 128) * c + 128; bl = (bl - 128) * c + 128
+    const l = 0.2126 * r + 0.7152 * g + 0.0722 * bl
+    r = l + (r - l) * s; g = l + (g - l) * s; bl = l + (bl - l) * s
+    r += w; bl -= w
+    const l2 = 0.2126 * r + 0.7152 * g + 0.0722 * bl
+    r += (l2 - r) * m; g += (l2 - g) * m; bl += (l2 - bl) * m
+    r = r + (40 + r * 0.75 - r) * f; g = g + (40 + g * 0.75 - g) * f; bl = bl + (40 + bl * 0.75 - bl) * f
+    d[i] = r; d[i + 1] = g; d[i + 2] = bl
+  }
+  return new ImageData(d, img.width, img.height)
+}
+
+function draw() {
+  if (!preview) return
+  const v = $('view')
+  v.getContext('2d').putImageData(apply(preview), 0, 0)
+}
+
+function sync() {
+  for (const [k] of SLIDERS) { $(`s-${k}`).value = state[k]; $(`o-${k}`).textContent = state[k] }
+  const match = Object.entries(PRESETS).find(([, p]) => SLIDERS.every(([k, , , , d]) => (p[k] ?? d) === state[k]))
+  document.querySelectorAll('#presets button').forEach((bt) => bt.setAttribute('aria-pressed', match?.[0] === bt.dataset.p))
+  draw()
+}
+
+$('file').onchange = async (e) => {
+  const file = e.target.files[0]
+  if (!file) return
+  name = file.name.replace(/\.[^.]+$/, '') || 'photo'
+  source = await createImageBitmap(file)
+  const scale = Math.min(1, 1400 / Math.max(source.width, source.height))
+  const v = $('view')
+  v.width = Math.round(source.width * scale); v.height = Math.round(source.height * scale)
+  const ctx = v.getContext('2d')
+  ctx.drawImage(source, 0, 0, v.width, v.height)
+  preview = ctx.getImageData(0, 0, v.width, v.height)
+  v.hidden = false; $('empty').hidden = true
+  document.querySelectorAll('aside input[type=range], #presets button, #reset, #export').forEach((x) => (x.disabled = false))
+  sync()
+}
+for (const [k] of SLIDERS) $(`s-${k}`).oninput = (e) => { state[k] = Number(e.target.value); $(`o-${k}`).textContent = state[k]; sync() }
+$('presets').onclick = (e) => {
+  const p = PRESETS[e.target.dataset?.p]; if (!p) return
+  for (const [k, , , , d] of SLIDERS) state[k] = p[k] ?? d
+  sync()
+}
+$('reset').onclick = () => { for (const [k, , , , d] of SLIDERS) state[k] = d; sync() }
+$('export').onclick = () => {
+  const c = document.createElement('canvas')
+  c.width = source.width; c.height = source.height
+  const ctx = c.getContext('2d')
+  ctx.drawImage(source, 0, 0)
+  ctx.putImageData(apply(ctx.getImageData(0, 0, c.width, c.height)), 0, 0)
+  c.toBlob((blob) => {
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `${name}-pixel-forge.png`
+    a.click()
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000)
+  }, 'image/png')
+}
+</script>
+</body>
+</html>

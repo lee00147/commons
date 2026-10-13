@@ -1,0 +1,15 @@
+0.35	Commons. Money measured in work.
+4.55	I'm Lee, and I built Commons on my own: the white paper, the Solana program, the Mac app, and the website.
+14.19	Most people hold crypto to speculate, not to use it.
+19.51	New coins go to whoever burns the most electricity, or already holds the most coins.
+26.79	And developers are funded from a foundation budget that eventually runs out.
+32.9	C M N is money measured in work. One C M N buys twenty work units: twenty billion metered WebAssembly instructions.
+42.53	Every day, an on-chain rule reads what compute jobs actually cleared at, and adjusts the money supply to hold that price steady.
+52.56	C M N can rise with the network's real output, by at most twenty-five percent a year.
+60.62	New money is first mined by useful work, paid only when independent providers agree on the result.
+68.69	After that, it flows through banks that users found and can vote out. Banks don't lend. They fund builders, and their operators earn when what they fund is actually used.
+81.86	So the network's growth keeps funding the people who build on it.
+88.36	The first users are people who need prices they can plan around: developers selling software, people trading compute, and AI agents paying for computation.
+99.17	It runs on Solana devnet today: jobs drawn, settled and mined; a Store where apps are bought with C M N and installed only if their hash matches the chain; and banks opened by user vote.
+114.69	Next: a metered WebAssembly runner, an audit, and mainnet.
+119.89	Commons. Money that pays for work, and funds the people who build.

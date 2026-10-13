@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Commons pitch</title>
+<style>
+  @font-face { font-family: Archivo; src: url(fonts/Archivo.ttf) format('truetype'); font-weight: 100 900; font-stretch: 62% 125%; }
+  @font-face { font-family: JBM; src: url(fonts/JetBrainsMono.ttf) format('truetype'); font-weight: 100 800; }
+  :root { --paper:#edf0f2; --surface:#ffffff; --ink:#101a2b; --ink2:#4b5667; --rule:#c9d0d8; --signal:#f2c230; --signalInk:#1a1405; --board:#f6d977; }
+  * { box-sizing: border-box; animation-play-state: paused !important; }
+  html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: var(--paper); color: var(--ink); font-family: Archivo, sans-serif; }
+  .scene { position: absolute; inset: 0; padding: 150px 160px 210px; opacity: 0; display: flex; flex-direction: column; justify-content: center; }
+  .brand { position: absolute; left: 72px; top: 54px; display: flex; align-items: center; gap: 14px; font-weight: 800; font-stretch: 115%; font-size: 30px; }
+  .progress { position: absolute; left: 0; top: 0; width: 100%; height: 6px; background: var(--signal); transform-origin: left; transform: scaleX(0); }
+  .sub { position: absolute; left: 0; right: 0; bottom: 70px; text-align: center; font-size: 30px; line-height: 1.38; color: var(--ink2); padding: 0 260px; }
+  h1 { font-size: 168px; font-weight: 800; font-stretch: 118%; letter-spacing: -0.03em; line-height: .94; margin: 0; }
+  h2 { font-size: 88px; font-weight: 800; font-stretch: 112%; letter-spacing: -0.02em; line-height: 1.02; margin: 0 0 56px; max-width: 22ch; }
+  p { margin: 0; }
+  .lede { font-size: 38px; color: var(--ink2); margin-top: 40px; }
+  .w { display: inline-block; margin-right: .22em; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .tile { background: var(--surface); border: 3px solid var(--ink); border-radius: 18px; padding: 34px 38px; }
+  .tile b { display: block; font-size: 44px; font-weight: 800; font-stretch: 108%; margin-bottom: 10px; }
+  .tile span { font-size: 30px; color: var(--ink2); }
+  .ledger { border-top: 3px solid var(--ink); }
+  .ledger .row { display: grid; grid-template-columns: 520px 1fr; gap: 40px; align-items: baseline; padding: 30px 0; border-bottom: 1.5px solid var(--rule); font-size: 48px; }
+  .ledger .row b { font-weight: 800; font-stretch: 110%; }
+  .ledger .row span { color: var(--ink2); }
+  .board { border: 4px solid var(--signalInk); border-radius: 22px; background: var(--board); color: var(--signalInk); overflow: hidden; }
+  .board .head { background: var(--signal); border-bottom: 4px solid var(--signalInk); padding: 20px 34px; display: flex; justify-content: space-between; font-size: 30px; font-weight: 700; font-stretch: 112%; }
+  .board .line { display: grid; grid-template-columns: 1fr 1.25fr; gap: 40px; align-items: baseline; padding: 30px 34px; border-bottom: 2px solid rgba(26,20,5,.28); }
+  .board .line:last-child { border-bottom: 0; }
+  .board .big { font-size: 76px; font-weight: 800; font-stretch: 76%; line-height: 1; font-variant-numeric: tabular-nums; }
+  .board .what { font-size: 34px; font-weight: 600; }
+  .mono { font-family: JBM, monospace; }
+  .chip { display: inline-flex; align-items: center; gap: 18px; font-size: 44px; padding: 22px 30px; border-radius: 16px; background: var(--surface); border: 3px solid var(--ink); }
+  .stack { display: grid; gap: 22px; justify-items: start; }
+  .chip i { width: 18px; height: 18px; border-radius: 50%; background: var(--signal); box-shadow: 0 0 0 4px var(--signalInk) inset; flex: none; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+  .card { background: var(--surface); border-radius: 18px; padding: 40px; border: 3px solid var(--ink); min-height: 260px; display: flex; flex-direction: column; justify-content: space-between; }
+  .card b { font-size: 46px; font-weight: 800; font-stretch: 106%; line-height: 1.08; }
+  .card span { font-size: 28px; color: var(--ink2); }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; position: relative; padding-top: 30px; }
+  .steps .bar { position: absolute; left: 34px; right: 34px; top: 63px; height: 4px; background: var(--ink); transform-origin: left; }
+  .step .n { width: 68px; height: 68px; border-radius: 50%; background: var(--signal); border: 4px solid var(--signalInk); display: grid; place-items: center; font-weight: 800; font-size: 34px; position: relative; z-index: 1; margin-bottom: 28px; }
+  .step b { font-size: 48px; font-weight: 800; font-stretch: 108%; line-height: 1.08; }
+  .center { align-items: center; text-align: center; }
+  .rowx { display: flex; gap: 70px; align-items: center; }
+  .frac { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; margin: 0 .2em; line-height: 1.05; }
+  .frac span:first-child { border-bottom: 5px solid currentColor; padding: 0 .12em; }
+  .formula { font-family: "Iowan Old Style", Georgia, serif; font-style: italic; font-size: 130px; white-space: nowrap; }
+  .formula sup { font-size: .55em; }
+  svg text { font-family: Archivo, sans-serif; }
+
+  @keyframes in { from { opacity: 0 } to { opacity: 1 } }
+  @keyframes out { from { opacity: 1 } to { opacity: 0 } }
+  @keyframes rise { from { opacity: 0; transform: translateY(46px) } to { opacity: 1; transform: none } }
+  @keyframes pop { from { opacity: 0; transform: scale(.82) } to { opacity: 1; transform: none } }
+  @keyframes slide { from { opacity: 0; transform: translateX(-60px) } to { opacity: 1; transform: none } }
+  @keyframes grow { from { transform: scaleX(0) } to { transform: scaleX(1) } }
+  @keyframes drain { from { transform: scaleX(1) } to { transform: scaleX(0) } }
+  @keyframes draw { from { stroke-dashoffset: var(--len, 3000) } to { stroke-dashoffset: 0 } }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div class="progress" id="progress"></div>
+<div class="brand" id="brand"><svg width="40" height="40" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M7 12h10M12 7v10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>Commons</div>
+<div class="sub" id="sub"></div>
+<script>
+const MARK = (size, bg = 'var(--signal)') => `<svg width="${size}" height="${size}" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="${bg}"/><circle cx="50" cy="50" r="27" fill="none" stroke="#101a2b" stroke-width="8.5"/><path d="M37 50h26M50 37v26" stroke="#101a2b" stroke-width="8.5" stroke-linecap="round"/></svg>`
+
+// Each scene: what the narrator says (speak), the subtitle (sub, defaults to speak),
+// its markup, and an optional per-frame hook. Elements animate with
+// data-a="name@at[:dur]" (seconds from the scene's start; several separated by ;).
+const SCENES = [
+  { speak: 'Commons. Money measured in work.', min: 4.2, html: `
+    <div data-a="pop@0.15:0.8" style="margin-bottom:56px">${MARK(150)}</div>
+    <h1><span class="w" data-a="rise@0.5">Money</span><span class="w" data-a="rise@0.68">measured</span><span class="w" data-a="rise@0.86">in work.</span></h1>
+    <p class="lede" data-a="rise@1.5">CMN, a currency on Solana</p>` },
+
+  { speak: "I'm Lee, and I built Commons on my own: the white paper, the Solana program, the Mac app, and the website.", html: `
+    <h2 data-a="rise@0.2">Built by one person.</h2>
+    <div class="grid2">
+      <div class="tile" data-a="rise@1.4"><b>White paper</b><span>The monetary design, with simulations</span></div>
+      <div class="tile" data-a="rise@2.4"><b>Solana program</b><span>31 instructions, deployed on devnet</span></div>
+      <div class="tile" data-a="rise@3.4"><b>Commons app</b><span>A Store and launcher for the Mac</span></div>
+      <div class="tile" data-a="rise@4.6"><b>Website</b><span>interactiveapps.net</span></div>
+    </div>` },
+
+  { speak: 'Most people hold crypto to speculate, not to use it.', html: `
+    <svg style="position:absolute;left:0;top:600px" width="1920" height="250" viewBox="0 0 1920 520" preserveAspectRatio="none">
+      <path data-a="draw@0.1:3.6" style="--len:2600;stroke-dasharray:2600" d="M0 380 L120 300 L190 420 L280 160 L360 330 L430 250 L520 460 L610 120 L700 300 L780 210 L870 440 L960 90 L1050 360 L1130 260 L1220 470 L1320 150 L1400 330 L1490 230 L1580 450 L1680 110 L1760 380 L1920 200" fill="none" stroke="#c9d0d8" stroke-width="10" stroke-linejoin="round"/>
+    </svg>
+    <h1 style="position:relative;font-size:150px;margin-bottom:300px"><span data-a="rise@0.5" style="display:block">Held to speculate,</span><span data-a="rise@1.3" style="display:block">not to use.</span></h1>` },
+
+  { speak: 'New coins go to whoever burns the most electricity, or already holds the most coins.', html: `
+    <h2 data-a="rise@0.2">Where new coins go today</h2>
+    <div class="ledger" data-a="in@0.6">
+      <div class="row" data-a="slide@1.2"><b>Proof of work</b><span>whoever burns the most electricity</span></div>
+      <div class="row" data-a="slide@3.2"><b>Proof of stake</b><span>whoever already holds the most</span></div>
+      <div class="row" data-a="slide@5.0"><b>The people who build</b><span>nothing, by design</span></div>
+    </div>` },
+
+  { speak: 'And developers are funded from a foundation budget that eventually runs out.', html: `
+    <h2 data-a="rise@0.2">Builders live on a fixed budget.</h2>
+    <div data-a="in@0.6" style="font-size:34px;font-weight:700;margin-bottom:18px">Foundation budget</div>
+    <div data-a="in@0.6" style="height:96px;border:4px solid var(--ink);border-radius:14px;overflow:hidden;background:var(--surface)">
+      <div data-a="drain@1.2:3.6" style="height:100%;background:var(--ink);transform-origin:left"></div>
+    </div>
+    <div data-a="in@0.8" style="display:flex;justify-content:space-between;font-size:28px;color:var(--ink2);margin-top:14px"><span>Launch</span><span>Year 1</span><span>Year 2</span><span>Year 3</span><span>Year 4</span></div>
+    <p data-a="rise@4.4" style="font-size:56px;font-weight:800;margin-top:44px">Then the funding stops.</p>` },
+
+  { speak: 'C M N is money measured in work. One C M N buys twenty work units: twenty billion metered WebAssembly instructions.',
+    sub: 'CMN is money measured in work. One CMN buys 20 work units: 20 billion metered WebAssembly instructions.', html: `
+    <div class="board" data-a="pop@0.3:0.7">
+      <div class="head"><span>Posted rate at index 1.000</span><span>set by the protocol</span></div>
+      <div class="line"><div class="big">1 CMN</div><div class="what" style="font-size:44px">buys 20 work units</div></div>
+      <div class="line"><div class="big mono" style="font-size:64px" id="instr">0</div><div class="what">metered WebAssembly instructions: the same on every machine, so the work behind every payment is counted, not claimed</div></div>
+    </div>`,
+    frame(el, t) {
+      const f = Math.min(1, Math.max(0, (t - 3.2) / 2.6))
+      const e = 1 - Math.pow(1 - f, 3)
+      el.querySelector('#instr').textContent = Math.round(20e9 * e).toLocaleString('en-US')
+    } },
+
+  { speak: 'Every day, an on-chain rule reads what compute jobs actually cleared at, and adjusts the money supply to hold that price steady.', html: `
+    <div class="rowx">
+      <div style="flex:1">
+        <div class="formula" data-a="rise@0.3"><span>M</span><sup>*</sup> = M · <span class="frac"><span>P<sup>*</sup></span><span>P</span></span></div>
+        <p data-a="rise@1.4" style="font-size:36px;color:var(--ink2);margin-top:34px;max-width:24ch">Once a day, from the prices jobs actually cleared at. At most 1% a day.</p>
+      </div>
+      <svg width="760" height="460" viewBox="0 0 760 460" data-a="in@1.0">
+        <line x1="40" y1="250" x2="740" y2="250" stroke="#101a2b" stroke-width="3" stroke-dasharray="12 10"/>
+        <text x="740" y="232" font-size="26" text-anchor="end" fill="#4b5667">target 1.000</text>
+        <path data-a="draw@1.6:4.2" style="--len:1100;stroke-dasharray:1100" d="M40 70 C 160 110, 210 330, 300 300 S 430 210, 500 262 S 640 246, 740 250" fill="none" stroke="#f2c230" stroke-width="12" stroke-linecap="round"/>
+        <text x="40" y="440" font-size="26" fill="#4b5667">work price index</text>
+      </svg>
+    </div>` },
+
+  { speak: "C M N can rise with the network's real output, by at most twenty-five percent a year.",
+    sub: "CMN can rise with the network's real output, by at most 25% a year.", html: `
+    <h2 data-a="rise@0.2">Rises with real output. Never faster than 25% a year.</h2>
+    <svg width="1600" height="420" viewBox="0 0 1600 420" data-a="in@0.8">
+      <path data-a="draw@1.0:3.2" style="--len:1800;stroke-dasharray:14 12" d="M20 380 C 500 340, 1000 230, 1580 40" fill="none" stroke="#101a2b" stroke-width="4"/>
+      <text x="1580" y="30" font-size="28" text-anchor="end" fill="#101a2b" font-weight="700">ceiling: +25% a year</text>
+      <path data-a="draw@1.6:4.0" style="--len:1800;stroke-dasharray:1800" d="M20 380 C 260 372, 380 330, 560 316 S 860 300, 1000 240 S 1300 180, 1580 150" fill="none" stroke="#f2c230" stroke-width="12" stroke-linecap="round"/>
+      <text x="1580" y="300" font-size="28" text-anchor="end" fill="#4b5667">what 1 CMN buys, as delivered work grows</text>
+    </svg>` },
+
+  { speak: 'New money is first mined by useful work, paid only when independent providers agree on the result.', html: `
+    <h2 data-a="rise@0.2">Mined by useful work.</h2>
+    <svg width="1600" height="440" viewBox="0 0 1600 440">
+      <g data-a="pop@0.9"><rect x="10" y="160" width="330" height="120" rx="16" fill="#fff" stroke="#101a2b" stroke-width="4"/><text x="175" y="214" font-size="34" font-weight="800" text-anchor="middle">A paid job</text><text x="175" y="252" font-size="24" text-anchor="middle" fill="#4b5667">price limit, 3 replicas</text></g>
+      ${[0, 1, 2].map((i) => `
+        <path data-a="draw@${1.6 + i * 0.5}:0.7" style="--len:400;stroke-dasharray:400" d="M340 220 C 430 220, 470 ${70 + i * 150}, 560 ${70 + i * 150}" fill="none" stroke="#101a2b" stroke-width="4"/>
+        <g data-a="pop@${2.0 + i * 0.5}"><rect x="560" y="${30 + i * 150}" width="400" height="84" rx="14" fill="#fff" stroke="#101a2b" stroke-width="4"/><text x="590" y="${84 + i * 150}" font-size="30" font-weight="700">Provider ${'ABC'[i]}</text>
+        <g data-a="pop@${3.6 + i * 0.45}:0.45"><circle cx="915" cy="${72 + i * 150}" r="24" fill="#f2c230" stroke="#1a1405" stroke-width="4"/><path d="M904 ${72 + i * 150} l8 8 l14 -16" stroke="#1a1405" stroke-width="5" fill="none" stroke-linecap="round"/></g></g>
+        <path data-a="draw@${5.1 + i * 0.15}:0.7" style="--len:400;stroke-dasharray:400" d="M960 ${72 + i * 150} C 1050 ${72 + i * 150}, 1090 220, 1180 220" fill="none" stroke="#101a2b" stroke-width="4"/>`).join('')}
+      <g data-a="pop@5.8"><rect x="1180" y="150" width="410" height="140" rx="18" fill="#f2c230" stroke="#1a1405" stroke-width="4"/><text x="1385" y="212" font-size="36" font-weight="800" text-anchor="middle" fill="#1a1405">New CMN, mined</text><text x="1385" y="252" font-size="24" text-anchor="middle" fill="#1a1405">80% providers · 20% developer</text></g>
+    </svg>` },
+
+  { speak: "After that, it flows through banks that users found and can vote out. Banks don't lend. They fund builders, and their operators earn when what they fund is actually used.", html: `
+    <h2 data-a="rise@0.2">Banks don't lend. They fund builders.</h2>
+    <div class="stack">
+      <div class="chip" data-a="slide@1.4"><i></i>Founded by users, and voted out by users</div>
+      <div class="chip" data-a="slide@3.6"><i></i>Grants need their operators' signatures, recorded on chain</div>
+      <div class="chip" data-a="slide@6.6"><i></i>Operators earn 3% of what the bank receives, vesting over a year</div>
+      <div class="chip" data-a="slide@9.2"><i></i>…and 1% of the fees from what they fund, for two years</div>
+    </div>` },
+
+  { speak: "So the network's growth keeps funding the people who build on it.", min: 6.5, html: `
+    <svg width="1600" height="560" viewBox="0 0 1600 560" style="align-self:center" id="loop">
+      ${[['People and agents', 'pay CMN for work and apps', 60, 40], ['The monetary rule', 'reads the price of work', 1000, 40], ['Mining, then the treasury', 'release new money', 1000, 380], ['Banks and builders', 'fund and ship programs', 60, 380]].map(([a, b, x, y], i) => `
+        <g class="node"><rect x="${x}" y="${y}" width="540" height="140" rx="20" fill="#fff" stroke="#101a2b" stroke-width="4"/><text x="${x + 270}" y="${y + 64}" font-size="38" font-weight="800" text-anchor="middle">${a}</text><text x="${x + 270}" y="${y + 106}" font-size="26" text-anchor="middle" fill="#4b5667">${b}</text></g>`).join('')}
+      <path d="M600 110 H990 M1270 180 V370 M1000 450 H610 M330 370 V190" stroke="#4b5667" stroke-width="4" fill="none" stroke-dasharray="10 10"/>
+      <circle id="coin" r="22" fill="#f2c230" stroke="#1a1405" stroke-width="6"/>
+    </svg>`,
+    frame(el, t) {
+      const pts = [[330, 40], [1270, 40], [1270, 380], [330, 380]]
+      const k = Math.max(0, t - 0.6) / 1.35
+      const i = Math.floor(k) % 4, f = k - Math.floor(k), e = f < 0.5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2
+      const a = pts[i], b = pts[(i + 1) % 4]
+      const c = el.querySelector('#coin')
+      c.setAttribute('cx', a[0] + (b[0] - a[0]) * e); c.setAttribute('cy', a[1] + (b[1] - a[1]) * e)
+      el.querySelectorAll('.node rect').forEach((r, n) => r.setAttribute('fill', n === (f > 0.5 ? (i + 1) % 4 : i) ? '#f2c230' : '#fff'))
+    } },
+
+  { speak: 'The first users are people who need prices they can plan around: developers selling software, people trading compute, and AI agents paying for computation.', html: `
+    <h2 data-a="rise@0.2">First users need prices they can plan around.</h2>
+    <div class="cards">
+      <div class="card" data-a="rise@3.4"><b>Developers selling software</b><span>Paid in CMN, licenses on chain</span></div>
+      <div class="card" data-a="rise@5.3"><b>People buying and selling compute</b><span>A unit that means the same work every day</span></div>
+      <div class="card" data-a="rise@7.2"><b>AI agents paying for computation</b><span>Budgets that hold next month</span></div>
+    </div>` },
+
+  { speak: 'It runs on Solana devnet today: jobs drawn, settled and mined; a Store where apps are bought with C M N and installed only if their hash matches the chain; and banks opened by user vote.',
+    sub: 'It runs on Solana devnet today: jobs drawn, settled and mined; a Store where apps are bought with CMN and installed only if their hash matches the chain; and banks opened by user vote.', html: `
+    <div class="board" data-a="pop@0.3:0.7">
+      <div class="head"><span>Live on Solana devnet</span><span class="mono" style="font-weight:500">program t5V6zr4B…KMfa</span></div>
+      <div class="line" data-a="rise@1.8"><div class="big">1.08 CMN</div><div class="what">mined by a verified job: exactly 75% of what its buyer paid</div></div>
+      <div class="line" data-a="rise@5.6"><div class="big">3 apps</div><div class="what">in the Store, bought with CMN, installed only when their SHA-256 matches the chain</div></div>
+      <div class="line" data-a="rise@10.4"><div class="big">1 bank</div><div class="what">opened by five endorsers, weighted by the fees they paid</div></div>
+    </div>` },
+
+  { speak: 'Next: a metered WebAssembly runner, an audit, and mainnet.', min: 5.2, html: `
+    <h2 data-a="rise@0.2">Next</h2>
+    <div class="steps">
+      <div class="bar" data-a="grow@0.8:2.6"></div>
+      <div class="step" data-a="rise@0.9"><div class="n">1</div><b>Metered WebAssembly runner</b></div>
+      <div class="step" data-a="rise@1.9"><div class="n">2</div><b>Independent audit</b></div>
+      <div class="step" data-a="rise@2.9"><div class="n">3</div><b>Mainnet</b></div>
+    </div>` },
+
+  { speak: 'Commons. Money that pays for work, and funds the people who build.', min: 8.5, html: `
+    <div class="center" style="display:flex;flex-direction:column">
+      <div data-a="pop@0.2:0.8">${MARK(170)}</div>
+      <h1 data-a="rise@0.6" style="font-size:150px;margin-top:44px">Commons</h1>
+      <p class="lede" data-a="rise@1.2" style="max-width:30ch">Money that pays for work and funds the people who build.</p>
+      <p data-a="rise@2.2" style="font-size:44px;font-weight:800;margin-top:44px">interactiveapps.net</p>
+    </div>` },
+]
+
+// Timeline
+const words = (s) => s.split(/\s+/).filter(Boolean).length
+let at = 0
+for (const s of SCENES) {
+  s.dur = Math.max(s.min ?? 0, words(s.speak) / 2.55 + 1.4)
+  s.start = at
+  at += s.dur
+}
+const TOTAL = at + 0.6
+window.TIMELINE = { total: TOTAL, narration: SCENES.map((s) => ({ start: +(s.start + 0.35).toFixed(2), speak: s.speak })) }
+
+const stage = document.getElementById('stage')
+const EASE = 'cubic-bezier(.22,1,.36,1)'
+for (const s of SCENES) {
+  const el = document.createElement('section')
+  el.className = 'scene'
+  el.innerHTML = s.html
+  for (const n of el.querySelectorAll('[data-a]')) {
+    n.style.animation = n.dataset.a.split(';').map((spec) => {
+      const [name, rest] = spec.split('@')
+      const [off, d] = rest.split(':').map(Number)
+      return `${name} ${d || 0.7}s ${name === 'draw' || name === 'drain' || name === 'grow' ? 'cubic-bezier(.45,0,.2,1)' : EASE} ${s.start + off}s both`
+    }).join(', ')
+  }
+  s.el = el
+  stage.appendChild(el)
+}
+
+const sub = document.getElementById('sub')
+const brand = document.getElementById('brand')
+const progress = document.getElementById('progress')
+window.seek = (t) => {
+  for (const a of document.getAnimations()) a.currentTime = t * 1000
+  SCENES.forEach((sc, n) => {
+    const last = n === SCENES.length - 1
+    const o = Math.max(0, Math.min(1, (t - sc.start) / 0.45, last ? 1 : (sc.start + sc.dur - t) / 0.45))
+    sc.el.style.opacity = o
+    sc.el.style.visibility = o > 0 ? 'visible' : 'hidden'
+  })
+  const i = Math.max(0, SCENES.findLastIndex((s) => s.start <= t))
+  const s = SCENES[i]
+  const local = t - s.start
+  sub.textContent = s.sub ?? s.speak
+  sub.style.opacity = Math.min(1, local / 0.3, (s.start + s.dur - t) / 0.3)
+  brand.style.opacity = i === 0 || i === SCENES.length - 1 ? 0 : Math.min(1, local / 0.4)
+  progress.style.transform = `scaleX(${Math.min(1, t / TOTAL)})`
+  for (const sc of SCENES) if (sc.frame && t >= sc.start - 0.5 && t <= sc.start + sc.dur + 0.5) sc.frame(sc.el, t - sc.start)
+}
+document.fonts.ready.then(() => { window.seek(0); window.READY = true })
+</script>
+</body>
+</html>

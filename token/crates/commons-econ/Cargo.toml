@@ -1,0 +1,8 @@
+[package]
+name = "commons-econ"
+version = "0.1.0"
+edition = "2021"
+description = "The Commons monetary rule in integer arithmetic"
+license = "MIT"
+
+[dependencies]

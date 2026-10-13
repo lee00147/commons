@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ledger Lens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --paper:#edf0f2; --surface:#fff; --ink:#101a2b; --ink2:#4b5667; --rule:#c9d0d8; --signal:#f2c230; --signalInk:#1a1405; }
+  @media (prefers-color-scheme: dark) { :root { --paper:#0f1622; --surface:#162030; --ink:#e7ecf2; --ink2:#9aa6b5; --rule:#263245; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:Archivo, system-ui, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 40px 20px 64px; }
+  header { display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight:800; font-stretch:118%; letter-spacing:-0.02em; margin:0; line-height:1; }
+  .sub { color:var(--ink2); margin:8px 0 0; }
+  .live { font-size:14px; color:var(--ink2); display:flex; align-items:center; gap:8px; }
+  .dot { width:9px; height:9px; border-radius:50%; background:var(--signal); box-shadow:0 0 0 3px color-mix(in srgb, var(--signal) 35%, transparent); }
+  .board { margin-top:32px; border:3px solid var(--ink); border-radius:14px; background:var(--surface); overflow:hidden; }
+  .board .head { padding:12px 20px; border-bottom:3px solid var(--ink); font-weight:700; font-stretch:112%; display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; background:var(--signal); color:var(--signalInk); }
+  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+  .cell { padding:18px 20px; border-right:1px solid var(--rule); border-bottom:1px solid var(--rule); }
+  .k { font-size:13px; color:var(--ink2); }
+  .v { font-size: clamp(26px, 3.4vw, 38px); font-weight:800; font-stretch:78%; font-variant-numeric: tabular-nums; margin-top:4px; }
+  .u { font-size:14px; font-weight:600; color:var(--ink2); margin-left:4px; font-stretch:100%; }
+  h2 { font-size:1.2rem; margin:40px 0 12px; }
+  table { width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--rule); border-radius:10px; overflow:hidden; font-size:14px; }
+  th, td { text-align:left; padding:10px 14px; border-bottom:1px solid var(--rule); }
+  th { color:var(--ink2); font-weight:600; }
+  td.mono, .mono { font-family:"JetBrains Mono", ui-monospace, monospace; font-size:13px; }
+  a { color:inherit; }
+  .err { color:#c0392b; margin-top:16px; }
+  footer { margin-top:32px; font-size:13px; color:var(--ink2); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Ledger Lens</h1>
+      <p class="sub">CMN on Solana devnet, read straight from the chain.</p>
+    </div>
+    <div class="live"><span class="dot"></span><span id="when">Reading…</span></div>
+  </header>
+
+  <section class="board" aria-label="CMN now">
+    <div class="head"><span>CMN today</span><span>refreshes every 30 s</span></div>
+    <div class="grid">
+      <div class="cell"><div class="k">Supply</div><div class="v" id="supply">–</div></div>
+      <div class="cell"><div class="k">In circulation</div><div class="v" id="circ">–</div></div>
+      <div class="cell"><div class="k">Held by the program</div><div class="v" id="vault">–</div></div>
+      <div class="cell"><div class="k">Mined by useful work</div><div class="v" id="mined">–</div></div>
+      <div class="cell"><div class="k">Work price index</div><div class="v" id="index">–</div></div>
+      <div class="cell"><div class="k">Target</div><div class="v" id="target">–</div></div>
+      <div class="cell"><div class="k">Last clearing price</div><div class="v" id="price">–</div></div>
+      <div class="cell"><div class="k">Issued through the treasury</div><div class="v" id="issued">–</div></div>
+    </div>
+  </section>
+
+  <h2>Latest program transactions</h2>
+  <table>
+    <thead><tr><th>When</th><th>Signature</th><th>Result</th></tr></thead>
+    <tbody id="txs"><tr><td colspan="3">Reading…</td></tr></tbody>
+  </table>
+  <p class="err" id="err" hidden></p>
+  <footer>Program <a class="mono" href="https://explorer.solana.com/address/t5V6zr4BQhVRReaKDWiKF98ER8FMEL2cZeQdacsKMfa?cluster=devnet" target="_blank" rel="noopener">t5V6zr4B…KMfa</a> · Mint <a class="mono" href="https://explorer.solana.com/address/C3QHKobcRskEnKJNjFjkLqvGrJmmbgT364VmyeRK4nQu?cluster=devnet" target="_blank" rel="noopener">C3QHKobc…4nQu</a> · Devnet CMN has no value.</footer>
+</main>
+<script>
+const RPC = 'https://api.devnet.solana.com'
+const PROGRAM = 't5V6zr4BQhVRReaKDWiKF98ER8FMEL2cZeQdacsKMfa'
+const MINT = 'C3QHKobcRskEnKJNjFjkLqvGrJmmbgT364VmyeRK4nQu'
+const VAULT = 'ehLQa8GcCrmpKB25fNbprC8AEfs5qKg6WSVStXzCMcK'
+const CONFIG = 'D66ZbtjrLwEhRXanQM4vqs5HMo14h36DCfmZemt4r2M4'
+// Config layout: discriminator 8 · bumps 3 · mint, vault, oracle, admin 4×32 · metadata_set 1 ·
+// day_secs 8 · genesis_ts 8 · merkle_root 32 · genesis_claimed 8 · econ { supply, issued, mined,
+// released, index_ppm, target_ppm, work_price, … } (i64 each)
+const ECON = 8 + 3 + 128 + 1 + 8 + 8 + 32 + 8
+
+async function rpc(method, params) {
+  const r = await fetch(RPC, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }) })
+  const j = await r.json()
+  if (j.error) throw new Error(j.error.message)
+  return j.result
+}
+const cmn = (micro) => (Number(micro) / 1e6).toLocaleString('en-US', { maximumFractionDigits: 2 })
+const set = (id, html) => { document.getElementById(id).innerHTML = html }
+
+async function load() {
+  try {
+    const [supply, vault, cfg, sigs] = await Promise.all([
+      rpc('getTokenSupply', [MINT]),
+      rpc('getTokenAccountBalance', [VAULT]),
+      rpc('getAccountInfo', [CONFIG, { encoding: 'base64' }]),
+      rpc('getSignaturesForAddress', [PROGRAM, { limit: 12 }]),
+    ])
+    const s = BigInt(supply.value.amount), v = BigInt(vault.value.amount)
+    set('supply', `${cmn(s)}<span class="u">CMN</span>`)
+    set('circ', `${cmn(s - v)}<span class="u">CMN</span>`)
+    set('vault', `${cmn(v)}<span class="u">CMN</span>`)
+    const bytes = Uint8Array.from(atob(cfg.value.data[0]), (c) => c.charCodeAt(0))
+    const dv = new DataView(bytes.buffer)
+    const i64 = (k) => dv.getBigInt64(ECON + 8 * k, true)
+    set('issued', `${cmn(i64(1))}<span class="u">CMN</span>`)
+    set('mined', `${cmn(i64(2))}<span class="u">CMN</span>`)
+    set('index', (Number(i64(4)) / 1e6).toFixed(4))
+    set('target', (Number(i64(5)) / 1e6).toFixed(4))
+    set('price', `${(Number(i64(6)) / 1e6).toFixed(3)}<span class="u">CMN / WU</span>`)
+    document.getElementById('txs').innerHTML = sigs.map((t) => {
+      const when = t.blockTime ? new Date(t.blockTime * 1000).toLocaleString() : '–'
+      const short = `${t.signature.slice(0, 10)}…${t.signature.slice(-6)}`
+      return `<tr><td>${when}</td><td class="mono"><a href="https://explorer.solana.com/tx/${t.signature}?cluster=devnet" target="_blank" rel="noopener">${short}</a></td><td>${t.err ? 'failed' : 'ok'}</td></tr>`
+    }).join('')
+    set('when', `Updated ${new Date().toLocaleTimeString()}`)
+    document.getElementById('err').hidden = true
+  } catch (e) {
+    const el = document.getElementById('err')
+    el.textContent = `Could not read devnet: ${e.message}. Retrying in 30 s.`
+    el.hidden = false
+  }
+}
+load()
+setInterval(load, 30_000)
+</script>
+</body>
+</html>

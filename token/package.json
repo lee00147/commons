@@ -1,0 +1,15 @@
+{
+  "name": "commons-token",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "merkle": "node scripts/genesis-merkle.mjs",
+    "init": "node scripts/initialize.mjs",
+    "crank": "node scripts/crank.mjs"
+  },
+  "dependencies": {
+    "@anchor-lang/core": "^1.1.0",
+    "@solana/spl-token": "^0.4.13",
+    "@solana/web3.js": "^1.98.0"
+  }
+}

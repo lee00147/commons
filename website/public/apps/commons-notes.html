@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Commons Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<style>
+  :root { --paper:#edf0f2; --surface:#fff; --ink:#101a2b; --ink2:#4b5667; --rule:#c9d0d8; --signal:#f2c230; --signalInk:#1a1405; }
+  @media (prefers-color-scheme: dark) { :root { --paper:#0f1622; --surface:#162030; --ink:#e7ecf2; --ink2:#9aa6b5; --rule:#263245; } }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:Archivo, system-ui, sans-serif; display:grid; grid-template-columns: 260px 1fr; }
+  aside { border-right:1px solid var(--rule); display:flex; flex-direction:column; min-height:0; }
+  .top { display:flex; align-items:center; justify-content:space-between; padding:16px; }
+  .brand { font-weight:800; font-stretch:115%; }
+  button { font:inherit; font-weight:700; border:0; border-radius:8px; padding:8px 12px; background:var(--ink); color:var(--paper); cursor:pointer; }
+  button.ghost { background:transparent; color:var(--ink2); padding:6px 8px; }
+  button:focus-visible, textarea:focus-visible, input:focus-visible, li:focus-visible { outline:3px solid #2346d9; outline-offset:2px; }
+  input[type=search] { margin:0 16px 12px; padding:8px 10px; border:1px solid var(--rule); border-radius:8px; background:var(--surface); color:var(--ink); font:inherit; }
+  ul { list-style:none; margin:0; padding:0 8px 16px; overflow:auto; }
+  li { padding:10px 12px; border-radius:8px; cursor:pointer; }
+  li[aria-selected=true] { background:var(--surface); box-shadow: inset 3px 0 0 var(--signal); }
+  li .t { font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  li .d { font-size:12px; color:var(--ink2); margin-top:2px; }
+  section { display:flex; flex-direction:column; min-height:0; }
+  .bar { display:flex; justify-content:space-between; align-items:center; padding:12px 20px; border-bottom:1px solid var(--rule); color:var(--ink2); font-size:13px; }
+  textarea { flex:1; border:0; resize:none; padding:28px 32px; background:transparent; color:var(--ink); font: 17px/1.65 Archivo, system-ui, sans-serif; max-width: 760px; }
+  .empty { margin:auto; color:var(--ink2); text-align:center; }
+  @media (max-width: 640px) { body { grid-template-columns: 1fr; grid-template-rows: 40vh 1fr; } aside { border-right:0; border-bottom:1px solid var(--rule); } }
+</style>
+</head>
+<body>
+<aside>
+  <div class="top"><span class="brand">Commons Notes</span><button id="new">New note</button></div>
+  <input type="search" id="q" placeholder="Search notes" aria-label="Search notes">
+  <ul id="list" role="listbox" aria-label="Notes"></ul>
+</aside>
+<section>
+  <div class="bar"><span id="status">Saved on this computer</span><button class="ghost" id="del">Delete note</button></div>
+  <textarea id="text" aria-label="Note" placeholder="Start writing. The first line is the title."></textarea>
+</section>
+<script>
+const KEY = 'commons-notes'
+let notes = []
+try { notes = JSON.parse(localStorage.getItem(KEY) || '[]') } catch {}
+let current = notes[0]?.id
+const $ = (id) => document.getElementById(id)
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(notes)) } catch {} ; $('status').textContent = 'Saved on this computer' }
+const title = (n) => (n.text.split('\n')[0] || 'New note').slice(0, 60)
+
+function render() {
+  const q = $('q').value.toLowerCase()
+  const shown = notes.filter((n) => n.text.toLowerCase().includes(q)).sort((a, b) => b.updated - a.updated)
+  $('list').innerHTML = shown.map((n) => `<li role="option" tabindex="0" data-id="${n.id}" aria-selected="${n.id === current}"><div class="t"></div><div class="d">${new Date(n.updated).toLocaleString()}</div></li>`).join('')
+  $('list').querySelectorAll('li').forEach((li, i) => { li.querySelector('.t').textContent = title(shown[i]) })
+  const n = notes.find((x) => x.id === current)
+  $('text').disabled = !n
+  $('del').disabled = !n
+  if (n && $('text').value !== n.text) $('text').value = n.text
+  if (!n) $('text').value = ''
+}
+function add() {
+  const n = { id: String(Date.now()), text: '', updated: Date.now() }
+  notes.push(n); current = n.id; save(); render(); $('text').focus()
+}
+$('new').onclick = add
+$('del').onclick = () => { notes = notes.filter((n) => n.id !== current); current = notes[0]?.id; save(); render() }
+$('q').oninput = render
+$('list').onclick = (e) => { const li = e.target.closest('li'); if (li) { current = li.dataset.id; render() } }
+$('list').onkeydown = (e) => { if (e.key === 'Enter') e.target.click() }
+let t
+$('text').oninput = () => {
+  const n = notes.find((x) => x.id === current); if (!n) return
+  n.text = $('text').value; n.updated = Date.now(); $('status').textContent = 'Saving…'
+  clearTimeout(t); t = setTimeout(() => { save(); render() }, 400)
+}
+if (!notes.length) { notes.push({ id: '1', text: 'Welcome to Commons Notes\n\nYou bought this app with CMN. The license lives on Solana, and the Commons app installed it only because its SHA-256 matched the build the developer registered on chain.', updated: Date.now() }); current = '1'; save() }
+render()
+</script>
+</body>
+</html>

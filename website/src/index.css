@@ -1,0 +1,5 @@
+/* Global styles live in the MUI theme and GlobalStyles (src/main.tsx). */
+:focus-visible {
+  outline: 3px solid #2346d9;
+  outline-offset: 2px;
+}
